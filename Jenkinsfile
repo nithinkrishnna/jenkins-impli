@@ -54,21 +54,20 @@ pipeline {
                     // Replace the placeholder image in deployment.yaml with the actual built image
                     sh "sed -i 's|DOCKER_IMAGE_NAME|${DOCKER_IMAGE}:${IMAGE_TAG}|g' k8s/deployment.yaml"
                     
-                    // Install kubectl if not already available
+                    // Install kubectl locally in workspace (no root required)
                     sh '''
-                        if ! command -v kubectl &> /dev/null; then
-                            echo "kubectl not found. Installing..."
+                        if [ ! -f ./kubectl ]; then
+                            echo "kubectl not found. Downloading to workspace..."
                             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
                             chmod +x kubectl
-                            mv kubectl /usr/local/bin/kubectl
                         fi
-                        kubectl version --client
+                        ./kubectl version --client
                     '''
                     
                     // Deploy using kubectl with the provided kubeconfig
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh "kubectl apply -f k8s/deployment.yaml"
-                        sh "kubectl apply -f k8s/service.yaml"
+                        sh "./kubectl apply -f k8s/deployment.yaml"
+                        sh "./kubectl apply -f k8s/service.yaml"
                     }
                 }
             }
