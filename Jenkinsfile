@@ -65,9 +65,16 @@ pipeline {
                     '''
                     
                     // Deploy using kubectl with the provided kubeconfig
-                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG')]) {
-                        sh "./kubectl apply -f k8s/deployment.yaml"
-                        sh "./kubectl apply -f k8s/service.yaml"
+                    withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG_FILE')]) {
+                        sh '''
+                            # Copy kubeconfig and replace 127.0.0.1 with host.docker.internal
+                            # so kubectl inside the Jenkins container can reach the K8s API on the host
+                            cp $KUBECONFIG_FILE /tmp/kubeconfig
+                            sed -i 's/127\\.0\\.0\\.1/host.docker.internal/g' /tmp/kubeconfig
+                            export KUBECONFIG=/tmp/kubeconfig
+                            ./kubectl apply -f k8s/deployment.yaml
+                            ./kubectl apply -f k8s/service.yaml
+                        '''
                     }
                 }
             }
