@@ -68,14 +68,14 @@ pipeline {
                     withCredentials([file(credentialsId: "${KUBECONFIG_CREDENTIALS_ID}", variable: 'KUBECONFIG_FILE')]) {
                         sh '''
                             # Copy kubeconfig and patch it for use inside Jenkins Docker container
-                            cp $KUBECONFIG_FILE /tmp/kubeconfig
+                            cp $KUBECONFIG_FILE ./kubeconfig
                             # Replace 127.0.0.1 with host.docker.internal to reach host from container
-                            sed -i 's/127\\.0\\.0\\.1/host.docker.internal/g' /tmp/kubeconfig
+                            sed -i 's/127\\.0\\.0\\.1/host.docker.internal/g' ./kubeconfig
                             # Remove certificate-authority-data line (cert not valid for host.docker.internal)
-                            sed -i '/certificate-authority-data/d' /tmp/kubeconfig
+                            sed -i '/certificate-authority-data/d' ./kubeconfig
                             # Add insecure-skip-tls-verify: true under each cluster entry
-                            sed -i '/server: https/a\\    insecure-skip-tls-verify: true' /tmp/kubeconfig
-                            export KUBECONFIG=/tmp/kubeconfig
+                            sed -i '/server: https/a\\    insecure-skip-tls-verify: true' ./kubeconfig
+                            export KUBECONFIG=./kubeconfig
                             ./kubectl apply --validate=false -f k8s/deployment.yaml
                             ./kubectl apply --validate=false -f k8s/service.yaml
                         '''
