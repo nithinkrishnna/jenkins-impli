@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         // NOTE: Replace 'dockerhub-credentials' with your actual Jenkins Credentials ID for Docker Hub
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id'
         
         // NOTE: Replace 'yourdockerhubusername' with your actual Docker Hub username
-        DOCKER_IMAGE = 'yourdockerhubusername/flask-app'
+        DOCKER_IMAGE = 'nithinnkrishna/flask-app'
         
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
@@ -33,11 +33,9 @@ pipeline {
             steps {
                 script {
                     echo "Pushing Docker Image to Registry..."
-                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
+                    withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: "") {
                         sh "docker push ${DOCKER_IMAGE}:${IMAGE_TAG}"
                         sh "docker push ${DOCKER_IMAGE}:latest"
-                        sh "docker logout"
                     }
                 }
             }
