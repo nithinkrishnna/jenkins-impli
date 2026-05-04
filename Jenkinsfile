@@ -33,9 +33,11 @@ pipeline {
             steps {
                 script {
                     echo "Pushing Docker Image to Registry..."
-                    withDockerRegistry(credentialsId: "${DOCKER_CREDENTIALS_ID}", url: "") {
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
                         sh "docker push ${DOCKER_IMAGE}:${IMAGE_TAG}"
                         sh "docker push ${DOCKER_IMAGE}:latest"
+                        sh "docker logout"
                     }
                 }
             }
